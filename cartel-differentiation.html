@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartel Differentiation Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --text-muted: #64748b;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 24px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page-header .subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+        .page-header .generated-at {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .methodology-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .methodology-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .methodology-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .methodology-card .description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .methodology-card .interpretation {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .rankings-section {
+            margin-bottom: 32px;
+        }
+        .rankings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .ranking-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+        .ranking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .ranking-card .rank {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 40px;
+        }
+        .ranking-card .industry-info {
+            flex: 1;
+        }
+        .ranking-card .industry-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .ranking-card .scores {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .ranking-card .verdict {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .verdict.cartel-likely { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .verdict.suspicious { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .verdict.monitor { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .verdict.competitive { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        @media (max-width: 1200px) {
+            .analysis-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .chart-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+        }
+
+        .variance-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        .variance-table th, .variance-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .variance-table th {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+        }
+        .variance-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .variance-table .flagged {
+            color: #ef4444;
+        }
+
+        .rf-details {
+            margin-top: 24px;
+            position: relative;
+            clear: both;
+        }
+        .rf-pair {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .rf-pair-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .rf-pair-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .rf-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .rf-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        .rf-stat {
+            text-align: center;
+        }
+        .rf-stat .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .rf-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Ensure sections don't overlap */
+        section {
+            position: relative;
+            clear: both;
+            margin-bottom: 32px;
+        }
+        
+        /* Fix table container */
+        .chart-container {
+            overflow-x: auto;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-link">← Back to Dashboard</a>
+        
+        <div class="page-header">
+            <h1>🔬 Cartel Differentiation Analysis</h1>
+            <p class="subtitle">Distinguishing Natural Monopolies from Price-Fixing Cartels</p>
+            <p class="generated-at" id="generatedAt">Loading...</p>
+        </div>
+
+        <!-- Methodology Cards -->
+        <div class="methodology-cards">
+            <div class="methodology-card">
+                <h3>🚀 Test A: Rocket and Feather</h3>
+                <p class="description" id="methodA-desc">Loading...</p>
+                <div class="interpretation" id="methodA-interp">Loading...</div>
+            </div>
+            <div class="methodology-card">
+                <h3>📊 Test B: Step-Ladder Variance</h3>
+                <p class="description" id="methodB-desc">Loading...</p>
+                <div class="interpretation" id="methodB-interp">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Combined Rankings -->
+        <section class="rankings-section">
+            <h2 class="section-title">🎯 Cartel Suspicion Rankings</h2>
+            <div class="rankings-grid" id="rankingsGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <div class="analysis-grid">
+            <div class="chart-container">
+                <h3>📈 Pass-Through Ratio by Industry</h3>
+                <div class="chart-wrapper">
+                    <canvas id="ptrChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3>📊 Disconnect Count vs Correlation</h3>
+                <div class="chart-wrapper">
+                    <canvas id="disconnectChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-grid">
+            <div class="chart-container">
+                <h3>📉 Step-Ladder Score Distribution</h3>
+                <div class="chart-wrapper">
+                    <canvas id="varianceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3>🎯 Combined Score Breakdown</h3>
+                <div class="chart-wrapper">
+                    <canvas id="scoreBreakdownChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variance Table -->
+        <section>
+            <h2 class="section-title">📋 Variance Analysis Details</h2>
+            <div class="chart-container">
+                <table class="variance-table" id="varianceTable">
+                    <thead>
+                        <tr>
+                            <th>Industry</th>
+                            <th>Std Dev</th>
+                            <th>Flat Months %</th>
+                            <th>Jump %</th>
+                            <th>Step-Ladder Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="varianceTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Rocket & Feather Details -->
+        <section class="rf-details">
+            <h2 class="section-title">🚀 Rocket & Feather Analysis Details</h2>
+            <div id="rfDetailsContainer">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </div>
+
+    <script src="cartel-differentiation.js"></script>
+</body>
+</html>
