@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPI Cartel Detection Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>📊 PPI Cartel Detection Dashboard</h1>
+                <p class="subtitle">Analyzing "Sticky Prices" During Market Crashes (1925-2023)</p>
+            </div>
+            <div class="header-stats" id="headerStats">
+                <!-- Populated by JS -->
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <div class="control-group">
+                <label for="industrySelect">Industry</label>
+                <select id="industrySelect" class="select-input">
+                    <option value="all">All Industries</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="eraSelect">Historical Era</label>
+                <select id="eraSelect" class="select-input">
+                    <option value="all">All Time (1925-2023)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="chartType">Chart Type</label>
+                <select id="chartType" class="select-input">
+                    <option value="line">Time Series</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="comparison">Industry Comparison</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="showSuspicious">
+                    <input type="checkbox" id="showSuspicious" checked>
+                    Highlight Suspicious Months
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label for="showEraOverlay">
+                    <input type="checkbox" id="showEraOverlay" checked>
+                    Show Era Overlays
+                </label>
+            </div>
+        </section>
+
+        <!-- Main Chart Area -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 id="chartTitle">PPI Year-over-Year Change</h2>
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Era Cards -->
+        <section class="era-section">
+            <h2>📅 Historical Eras Analysis</h2>
+            <div class="era-cards" id="eraCards">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Industry Rankings -->
+        <section class="rankings-section">
+            <h2>🏆 Industry Suspicion Rankings</h2>
+            <div class="rankings-container">
+                <div class="rankings-chart">
+                    <canvas id="rankingsChart"></canvas>
+                </div>
+                <div class="rankings-table" id="rankingsTable">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Suspicious Months Detail -->
+        <section class="detail-section">
+            <h2>🚨 Suspicious Months Detail</h2>
+            <div class="filter-bar">
+                <input type="text" id="searchSuspicious" placeholder="Search by year or industry..." class="search-input">
+                <select id="filterSeverity" class="select-input">
+                    <option value="all">All Severity</option>
+                    <option value="high">High (≥6 months/year)</option>
+                    <option value="medium">Medium (3-5 months/year)</option>
+                    <option value="low">Low (1-2 months/year)</option>
+                </select>
+            </div>
+            <div class="suspicious-grid" id="suspiciousGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Data Source: Federal Reserve Economic Data (FRED) | Method: "Sticky Price" Detection Algorithm</p>
+            <p>Thresholds: Market Crash < -2% YoY | Industry Sticky > -0.5% YoY</p>
+        </footer>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

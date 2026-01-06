@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greek Procurement: Risk Screening Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .page-header .subtitle {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .overview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .overview-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .overview-stat .value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .overview-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .screen-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .screen-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .screen-section .screen-desc {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .screen-info {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .screen-info strong {
+            color: var(--primary);
+        }
+
+        .chart-container-medium {
+            height: 400px;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .risk-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .risk-table th,
+        .risk-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .risk-table th {
+            background: var(--bg-dark);
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .risk-table tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .risk-tier {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tier-high {
+            background: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+        }
+
+        .tier-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .tier-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .red-flags-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .red-flags-list li {
+            padding: 4px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .red-flags-list li::before {
+            content: '⚠️';
+            font-size: 10px;
+        }
+
+        .company-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .company-table th,
+        .company-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .company-table th {
+            background: var(--bg-dark);
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .company-table tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .company-name {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .actions-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .action-card {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .action-card .priority {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .action-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .action-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .action-card .sectors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .action-card .sector-tag {
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-btn">← Back to Dashboard</a>
+        
+        <header class="page-header">
+            <h1>📈 Greek Procurement: Risk Screening Analysis</h1>
+            <p class="subtitle">Three-screen cartel detection methodology: Single Bidder Index, HHI Concentration, and Benford's Law</p>
+        </header>
+
+        <!-- Overview Statistics -->
+        <div class="overview-stats">
+            <div class="overview-stat">
+                <div class="value" style="color: var(--primary);">30,953</div>
+                <div class="label">Total Tenders</div>
+            </div>
+            <div class="overview-stat">
+                <div class="value" style="color: var(--success);">106,652</div>
+                <div class="label">Total Lots</div>
+            </div>
+            <div class="overview-stat">
+                <div class="value" style="color: var(--warning);">€1.57T</div>
+                <div class="label">Total Value</div>
+            </div>
+            <div class="overview-stat">
+                <div class="value" style="color: var(--danger);">21.3%</div>
+                <div class="label">Single-Bid Rate</div>
+            </div>
+            <div class="overview-stat">
+                <div class="value" style="color: var(--danger);">8</div>
+                <div class="label">High-Risk Sectors</div>
+            </div>
+        </div>
+
+        <!-- Screen 1: Single Bidder Index -->
+        <section class="screen-section">
+            <h2>🎯 Screen 1: Single Bidder Index</h2>
+            <p class="screen-desc">Measures the percentage of contracts where only one bidder participated - a key indicator of potential collusion or market manipulation.</p>
+            
+            <div class="screen-info">
+                <strong>Warning Threshold:</strong> Sectors with single-bid rates above 30% require investigation. The overall rate of 21.3% is concerning for a public procurement market.
+            </div>
+
+            <div class="chart-container-medium">
+                <canvas id="singleBidChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Screen 2: HHI Concentration -->
+        <section class="screen-section">
+            <h2>📊 Screen 2: HHI Market Concentration</h2>
+            <p class="screen-desc">The Herfindahl-Hirschman Index measures market concentration. Higher values indicate more concentrated (less competitive) markets.</p>
+            
+            <div class="screen-info">
+                <strong>Thresholds:</strong> HHI &lt; 1500 = Competitive | HHI 1500-2500 = Moderately Concentrated | HHI &gt; 2500 = Highly Concentrated
+            </div>
+
+            <div class="chart-container-medium">
+                <canvas id="hhiChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Screen 3: Benford's Law -->
+        <section class="screen-section">
+            <h2>🔢 Screen 3: Benford's Law Test</h2>
+            <p class="screen-desc">Natural data follows a predictable distribution of first digits. Significant deviations (high χ² values) suggest potential price manipulation or bid rigging.</p>
+            
+            <div class="screen-info">
+                <strong>Interpretation:</strong> Chi-square values above 15.51 (α=0.05 with 8 degrees of freedom) indicate statistically significant deviation from expected distribution.
+            </div>
+
+            <div class="chart-container-medium">
+                <canvas id="benfordChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Priority Sectors Table -->
+        <section class="screen-section">
+            <h2>🚨 High-Risk Sectors Analysis</h2>
+            <p class="screen-desc">Sectors ranked by composite risk score combining all three screening indicators.</p>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="sectors">By Sector</button>
+                <button class="tab-btn" data-tab="companies">Key Companies</button>
+            </div>
+
+            <div id="sectors" class="tab-content active">
+                <table class="risk-table">
+                    <thead>
+                        <tr>
+                            <th>Sector</th>
+                            <th>Risk Tier</th>
+                            <th>Score</th>
+                            <th>Single-Bid %</th>
+                            <th>HHI</th>
+                            <th>Benford χ²</th>
+                            <th>Value (€)</th>
+                            <th>Red Flags</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectorTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="companies" class="tab-content">
+                <table class="company-table">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Sector</th>
+                            <th>Market Share</th>
+                            <th>Contracts</th>
+                            <th>Total Value (€)</th>
+                            <th>Investigation Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companyTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Recommended Actions -->
+        <section class="actions-section">
+            <h2>📋 Recommended Investigation Actions</h2>
+            <p class="screen-desc" style="margin-bottom: 24px;">Priority actions based on the risk screening analysis.</p>
+
+            <div class="actions-grid" id="actionsGrid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Data from cartel_investigation_data.json
+        const edaData = {
+            metadata: {
+                total_tenders: 30953,
+                total_lots: 106652,
+                total_value_eur: 1565121453862.83,
+                overall_single_bid_rate: 21.28
+            },
+            priority_sectors: [
+                {
+                    cpv_code: "66",
+                    sector_name: "Financial Services",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 56.1,
+                    single_bid_rate_pct: 31.8,
+                    hhi_index: 5252,
+                    benford_chi_square: 79.9,
+                    total_lots: 305,
+                    total_value_eur: 5098119989.66,
+                    red_flags: [
+                        "HHI of 5252 indicates highly concentrated market",
+                        "Benford's Law deviation (χ²=79.9) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "63",
+                    sector_name: "Travel Services",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 49.6,
+                    single_bid_rate_pct: 29.3,
+                    hhi_index: 3693,
+                    benford_chi_square: 149.5,
+                    total_lots: 116,
+                    total_value_eur: 710345941.56,
+                    red_flags: [
+                        "HHI of 3693 indicates highly concentrated market",
+                        "Benford's Law deviation (χ²=149.5) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "75",
+                    sector_name: "Public Admin Services",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 47.3,
+                    single_bid_rate_pct: 50.0,
+                    hhi_index: 653,
+                    benford_chi_square: 40.5,
+                    total_lots: 84,
+                    total_value_eur: 138418533.32,
+                    red_flags: [
+                        "Benford's Law deviation (χ²=40.5) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "64",
+                    sector_name: "Postal & Telecom",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 46.1,
+                    single_bid_rate_pct: 38.2,
+                    hhi_index: 1669,
+                    benford_chi_square: 54.5,
+                    total_lots: 199,
+                    total_value_eur: 480909986.72,
+                    red_flags: [
+                        "Benford's Law deviation (χ²=54.5) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "70",
+                    sector_name: "Real Estate",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 44.6,
+                    single_bid_rate_pct: 6.9,
+                    hhi_index: 4797,
+                    benford_chi_square: 117.2,
+                    total_lots: 72,
+                    total_value_eur: 138552772.93,
+                    red_flags: [
+                        "HHI of 4797 indicates highly concentrated market",
+                        "Benford's Law deviation (χ²=117.2) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "77",
+                    sector_name: "Agriculture Services",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 41.6,
+                    single_bid_rate_pct: 41.2,
+                    hhi_index: 28,
+                    benford_chi_square: 50548.9,
+                    total_lots: 4201,
+                    total_value_eur: 5653775867.53,
+                    red_flags: [
+                        "Benford's Law deviation (χ²=50548.9) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "55",
+                    sector_name: "Hotel & Restaurant",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 41.0,
+                    single_bid_rate_pct: 35.3,
+                    hhi_index: 531,
+                    benford_chi_square: 7251.6,
+                    total_lots: 1053,
+                    total_value_eur: 10336725466.78,
+                    red_flags: [
+                        "Benford's Law deviation (χ²=7251.6) suggests price manipulation"
+                    ]
+                },
+                {
+                    cpv_code: "92",
+                    sector_name: "Recreation & Culture",
+                    risk_tier: "HIGH",
+                    composite_risk_score: 40.2,
+                    single_bid_rate_pct: 29.9,
+                    hhi_index: 907,
+                    benford_chi_square: 13901.6,
+                    total_lots: 678,
+                    total_value_eur: 274617039.73,
+                    red_flags: [
+                        "Benford's Law deviation (χ²=13901.6) suggests price manipulation"
+                    ]
+                }
+            ],
+            key_companies: [
+                {
+                    company_name: "PROFILE ΑΝΩΝΥΜΟΣ ΕΜΠΟΡΙΚΗ ΚΑΙ ΒΙΟΜΗΧΑΝΙΚΗ ΕΤΑΙΡΕΙΑ ΠΛΗΡΟΦΟΡΙΚΗΣ",
+                    sector: "Public Admin Services",
+                    sector_cpv: "75",
+                    market_share_pct: 11.52,
+                    num_contracts: 1,
+                    total_value_won_eur: 68970000.0,
+                    investigation_reason: "Dominant player in high-risk sector with 11.5% market share"
+                },
+                {
+                    company_name: "ΕΛΛΗΝΙΚΑ ΤΑΧΥΔΡΟΜΕΙΑ Α.Ε.",
+                    sector: "Postal & Telecom",
+                    sector_cpv: "64",
+                    market_share_pct: 38.33,
+                    num_contracts: 1,
+                    total_value_won_eur: 734076092.96,
+                    investigation_reason: "Dominant player in high-risk sector with 38.3% market share"
+                },
+                {
+                    company_name: "ΑΦΟΙ ΚΟΜΠΑΤΣΙΑΡΗ ΑΕ",
+                    sector: "Hotel & Restaurant",
+                    sector_cpv: "55",
+                    market_share_pct: 17.42,
+                    num_contracts: 3,
+                    total_value_won_eur: 15228373656.9,
+                    investigation_reason: "Dominant player in high-risk sector with 17.4% market share"
+                },
+                {
+                    company_name: "ΓΕΥΣΗΝΟΥΣ ΑΒΕΕ",
+                    sector: "Hotel & Restaurant",
+                    sector_cpv: "55",
+                    market_share_pct: 8.32,
+                    num_contracts: 5,
+                    total_value_won_eur: 7272166080.45,
+                    investigation_reason: "Dominant player in high-risk sector with 8.3% market share"
+                },
+                {
+                    company_name: "Αλεβίζος Αθανάσιος του Αντωνίου",
+                    sector: "Agriculture Services",
+                    sector_cpv: "77",
+                    market_share_pct: 1.37,
+                    num_contracts: 4,
+                    total_value_won_eur: 191796803.48,
+                    investigation_reason: "Dominant player in high-risk sector with 1.4% market share"
+                },
+                {
+                    company_name: "CQS AE",
+                    sector: "Postal & Telecom",
+                    sector_cpv: "64",
+                    market_share_pct: 6.0,
+                    num_contracts: 2,
+                    total_value_won_eur: 115000000.0,
+                    investigation_reason: "Dominant player in high-risk sector with 6.0% market share"
+                }
+            ],
+            recommended_actions: [
+                {
+                    priority: 1,
+                    action: "Cross-reference ownership data",
+                    description: "Check if top companies in each sector share common ownership, directors, or addresses",
+                    sectors: []
+                },
+                {
+                    priority: 2,
+                    action: "Analyze bidding patterns",
+                    description: "Look for bid rotation patterns where companies take turns winning contracts",
+                    sectors: ["Financial Services", "Travel Services", "Public Admin Services", "Postal & Telecom"]
+                },
+                {
+                    priority: 3,
+                    action: "Geographic clustering analysis",
+                    description: "Check if winners are geographically concentrated or if there are territorial agreements",
+                    sectors: ["Real Estate", "Agriculture Services", "Hotel & Restaurant", "Recreation & Culture"]
+                },
+                {
+                    priority: 4,
+                    action: "Price similarity analysis",
+                    description: "Compare bid prices in multi-bid tenders to detect coordinated pricing",
+                    sectors: ["All HIGH risk sectors"]
+                },
+                {
+                    priority: 5,
+                    action: "Buyer-bidder relationship analysis",
+                    description: "Identify if specific buyers consistently award to the same bidders",
+                    sectors: ["Financial Services", "Public Admin Services"]
+                }
+            ]
+        };
+
+        // Tab functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Render Single Bid Chart
+        function renderSingleBidChart() {
+            const ctx = document.getElementById('singleBidChart').getContext('2d');
+            const data = edaData.priority_sectors;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.sector_name),
+                    datasets: [{
+                        label: 'Single-Bid Rate (%)',
+                        data: data.map(d => d.single_bid_rate_pct),
+                        backgroundColor: data.map(d => d.single_bid_rate_pct > 35 ? 'rgba(220, 38, 38, 0.7)' : 
+                                                       d.single_bid_rate_pct > 25 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(16, 185, 129, 0.7)'),
+                        borderColor: data.map(d => d.single_bid_rate_pct > 35 ? 'rgb(220, 38, 38)' : 
+                                                    d.single_bid_rate_pct > 25 ? 'rgb(245, 158, 11)' : 'rgb(16, 185, 129)'),
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            callbacks: {
+                                afterLabel: (ctx) => `${data[ctx.dataIndex].total_lots} contracts`
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    yMin: 30,
+                                    yMax: 30,
+                                    borderColor: 'rgba(220, 38, 38, 0.5)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        display: true,
+                                        content: 'Warning Threshold (30%)',
+                                        position: 'end',
+                                        backgroundColor: 'rgba(220, 38, 38, 0.8)'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 60,
+                            grid: { color: 'rgba(71, 85, 105, 0.5)' },
+                            ticks: { color: '#94a3b8', callback: v => v + '%' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render HHI Chart
+        function renderHHIChart() {
+            const ctx = document.getElementById('hhiChart').getContext('2d');
+            const data = edaData.priority_sectors;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.sector_name),
+                    datasets: [{
+                        label: 'HHI Index',
+                        data: data.map(d => d.hhi_index),
+                        backgroundColor: data.map(d => d.hhi_index > 2500 ? 'rgba(220, 38, 38, 0.7)' : 
+                                                       d.hhi_index > 1500 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(16, 185, 129, 0.7)'),
+                        borderColor: data.map(d => d.hhi_index > 2500 ? 'rgb(220, 38, 38)' : 
+                                                    d.hhi_index > 1500 ? 'rgb(245, 158, 11)' : 'rgb(16, 185, 129)'),
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            callbacks: {
+                                afterLabel: (ctx) => {
+                                    const hhi = data[ctx.dataIndex].hhi_index;
+                                    return hhi > 2500 ? 'Highly Concentrated' : 
+                                           hhi > 1500 ? 'Moderately Concentrated' : 'Competitive';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(71, 85, 105, 0.5)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Benford Chart (log scale)
+        function renderBenfordChart() {
+            const ctx = document.getElementById('benfordChart').getContext('2d');
+            const data = edaData.priority_sectors;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.sector_name),
+                    datasets: [{
+                        label: 'Benford χ² Statistic',
+                        data: data.map(d => d.benford_chi_square),
+                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        borderColor: 'rgb(139, 92, 246)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            callbacks: {
+                                afterLabel: (ctx) => {
+                                    const chi = data[ctx.dataIndex].benford_chi_square;
+                                    return chi > 15.51 ? '⚠️ Statistically significant deviation' : 'Within normal range';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'logarithmic',
+                            grid: { color: 'rgba(71, 85, 105, 0.5)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Sector Table
+        function renderSectorTable() {
+            const tbody = document.getElementById('sectorTableBody');
+            tbody.innerHTML = edaData.priority_sectors.map(s => `
+                <tr>
+                    <td><strong>${s.sector_name}</strong><br><small style="color: var(--text-secondary)">CPV ${s.cpv_code}</small></td>
+                    <td><span class="risk-tier tier-high">${s.risk_tier}</span></td>
+                    <td><strong>${s.composite_risk_score.toFixed(1)}</strong></td>
+                    <td>${s.single_bid_rate_pct.toFixed(1)}%</td>
+                    <td>${s.hhi_index.toLocaleString()}</td>
+                    <td>${s.benford_chi_square.toFixed(1)}</td>
+                    <td>€${(s.total_value_eur / 1e9).toFixed(2)}B</td>
+                    <td>
+                        <ul class="red-flags-list">
+                            ${s.red_flags.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Company Table
+        function renderCompanyTable() {
+            const tbody = document.getElementById('companyTableBody');
+            tbody.innerHTML = edaData.key_companies.map(c => `
+                <tr>
+                    <td class="company-name" title="${c.company_name}">${c.company_name}</td>
+                    <td>${c.sector}<br><small style="color: var(--text-secondary)">CPV ${c.sector_cpv}</small></td>
+                    <td><strong>${c.market_share_pct.toFixed(1)}%</strong></td>
+                    <td>${c.num_contracts}</td>
+                    <td>€${(c.total_value_won_eur / 1e6).toFixed(1)}M</td>
+                    <td style="font-size: 12px; color: var(--text-secondary)">${c.investigation_reason}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Actions Grid
+        function renderActions() {
+            const grid = document.getElementById('actionsGrid');
+            grid.innerHTML = edaData.recommended_actions.map(a => `
+                <div class="action-card">
+                    <div class="priority">${a.priority}</div>
+                    <h4>${a.action}</h4>
+                    <p>${a.description}</p>
+                    ${a.sectors.length > 0 ? `
+                        <div class="sectors">
+                            ${a.sectors.map(s => `<span class="sector-tag">${s}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        renderSingleBidChart();
+        renderHHIChart();
+        renderBenfordChart();
+        renderSectorTable();
+        renderCompanyTable();
+        renderActions();
+    </script>
+</body>
+</html>
