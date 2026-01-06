@@ -96,6 +96,43 @@
             </div>
         </section>
 
+        <!-- NEW: Against the Market Analysis -->
+        <section class="era-section" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.3);">
+            <h2>🎯 "Against the Market" Analysis</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Industries that maintained or increased prices when the <strong>majority</strong> of industries were declining. This is a more robust cartel indicator than using market average.</p>
+            
+            <div class="against-market-stats" id="againstMarketStats">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <h3 style="margin-bottom: 16px; font-size: 18px;">🏆 Top "Price Resisters" (1927-2023)</h3>
+                <div class="rankings-container">
+                    <div class="rankings-chart" style="flex: 1;">
+                        <canvas id="againstMarketChart"></canvas>
+                    </div>
+                    <div class="rankings-table" id="againstMarketTable" style="flex: 1; max-height: 350px; overflow-y: auto;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <h3 style="margin-bottom: 16px; font-size: 18px;">📅 Behavior by Historical Era</h3>
+                <div class="era-cards" id="againstMarketEras">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <h3 style="margin-bottom: 16px; font-size: 18px;">🗓️ "Against the Market" Heatmap (Year × Industry)</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Darker cells = more months where the industry resisted market-wide price drops</p>
+                <div class="heatmap-container" style="overflow-x: auto;">
+                    <canvas id="heatmapChart" style="max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </section>
+
         <!-- Era Cards -->
         <section class="era-section">
             <h2>📅 Historical Eras Analysis</h2>
