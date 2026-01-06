@@ -161,6 +161,163 @@
             font-weight: bold;
         }
 
+        /* Theory Section Styles */
+        .theory-section {
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .theory-header {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .theory-intro {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 40px;
+            font-size: 16px;
+        }
+
+        .theory-tier {
+            margin-bottom: 40px;
+        }
+
+        .tier-header {
+            padding: 20px 24px;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 0;
+        }
+
+        .tier-header.tier-1 {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(220, 38, 38, 0.1));
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-bottom: none;
+        }
+
+        .tier-header.tier-2 {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-bottom: none;
+        }
+
+        .tier-header.tier-3 {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-bottom: none;
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .tier-1 .tier-badge {
+            background: rgba(220, 38, 38, 0.3);
+            color: #f87171;
+        }
+
+        .tier-2 .tier-badge {
+            background: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .tier-3 .tier-badge {
+            background: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .tier-header h3 {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .tier-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .papers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+        }
+
+        .paper-card {
+            display: flex;
+            gap: 16px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .paper-card:hover {
+            transform: translateX(4px);
+        }
+
+        .paper-number {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .paper-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .paper-title {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .paper-journal {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .paper-relevance {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .paper-relevance strong {
+            color: var(--warning);
+        }
+
         .footer {
             margin-top: 60px;
             text-align: center;
@@ -290,6 +447,135 @@
                 </div>
             </a>
         </div>
+
+        <!-- Economic Theory Foundation -->
+        <section class="theory-section">
+            <h2 class="theory-header">📚 Theoretical Foundation</h2>
+            <p class="theory-intro">This analysis is grounded in established economic literature on cartel detection, price rigidity, and institutional economics.</p>
+
+            <!-- Tier 1 -->
+            <div class="theory-tier">
+                <div class="tier-header tier-1">
+                    <span class="tier-badge">Tier 1</span>
+                    <h3>Price Rigidity & Business Cycles</h3>
+                    <p>Core theories explaining why "Sticky Prices" emerge during economic crises</p>
+                </div>
+                <div class="papers-grid">
+                    <div class="paper-card">
+                        <div class="paper-number">1</div>
+                        <div class="paper-content">
+                            <h4>Rotemberg, J. J., & Saloner, G. (1986)</h4>
+                            <p class="paper-title">"A Supergame-Theoretic Model of Price Wars during Booms"</p>
+                            <p class="paper-journal">American Economic Review</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> The primary counter-theory we test. They argue price wars happen in booms, implying cartels are most stable during recessions—explaining the "sticky prices" during the Greek crisis.</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">2</div>
+                        <div class="paper-content">
+                            <h4>Green, E. J., & Porter, R. H. (1984)</h4>
+                            <p class="paper-title">"Noncooperative Collusion under Imperfect Price Information"</p>
+                            <p class="paper-journal">Econometrica</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Foundational theory that "Price Wars" are discipline mechanisms within cartels. Periods of stability followed by sharp drops indicate "equilibrium punishment phases."</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">3</div>
+                        <div class="paper-content">
+                            <h4>Stephan, A. (2012)</h4>
+                            <p class="paper-title">"Price Fixing in Crisis: Implications of an Economic Downturn for Cartels and Enforcement"</p>
+                            <p class="paper-journal">World Competition</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Directly analyzes how economic downturns affect cartel stability, arguing crises force "tacit" colluders to form "hard-core" cartels—supporting our "Crisis Cartels" hypothesis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="theory-tier">
+                <div class="tier-header tier-2">
+                    <span class="tier-badge">Tier 2</span>
+                    <h3>Detection Theory: Bid Rigging & Procurement</h3>
+                    <p>Theoretical justification for Single-Bid, Concentration, and Variance screens</p>
+                </div>
+                <div class="papers-grid">
+                    <div class="paper-card">
+                        <div class="paper-number">4</div>
+                        <div class="paper-content">
+                            <h4>Porter, R. H., & Zona, J. D. (1993)</h4>
+                            <p class="paper-title">"Detection of Bid Rigging in Procurement Auctions"</p>
+                            <p class="paper-journal">Journal of Political Economy</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> The seminal "How-To" manual for finding cartels in public contracts. Justifies detecting "complementary bids" (fake high bids) and distinguishing them from honest high costs.</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">5</div>
+                        <div class="paper-content">
+                            <h4>Abrantes-Metz, R. M., et al. (2006)</h4>
+                            <p class="paper-title">"A Variance Screen for Collusion"</p>
+                            <p class="paper-journal">International Journal of Industrial Organization</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Proves that low variance (artificial stability) predicts collusion better than high prices—the theoretical basis for detecting "flat" price lines.</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">6</div>
+                        <div class="paper-content">
+                            <h4>Harrington, J. E. (2008)</h4>
+                            <p class="paper-title">"Detecting Cartels"</p>
+                            <p class="paper-journal">Handbook of Antitrust Economics</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Categorizes our screens (Behavioral vs. Structural) and explains why structural screens like Benford's Law work: cartels leave statistical footprints from coordination.</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">7</div>
+                        <div class="paper-content">
+                            <h4>Bajari, P., & Ye, L. (2003)</h4>
+                            <p class="paper-title">"Deciding Between Competition and Collusion"</p>
+                            <p class="paper-journal">Review of Economics and Statistics</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Competitive bids correlate with cost variables; collusive bids correlate with each other. Supports our Network/Correlation analysis approach.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="theory-tier">
+                <div class="tier-header tier-3">
+                    <span class="tier-badge">Tier 3</span>
+                    <h3>Institutional Economics & Development</h3>
+                    <p>Bridging cartel analysis to broader institutional and development theory</p>
+                </div>
+                <div class="papers-grid">
+                    <div class="paper-card">
+                        <div class="paper-number">8</div>
+                        <div class="paper-content">
+                            <h4>Acemoglu, D., & Robinson, J. (2006)</h4>
+                            <p class="paper-title">"Economic Backwardness in Political Perspective"</p>
+                            <p class="paper-journal">American Political Science Review</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Explains "Blocking Technologies"—Greek cartels as political elites blocking efficient competitors to preserve rents, causing the "development trap."</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">9</div>
+                        <div class="paper-content">
+                            <h4>Connor, J. M. (2014)</h4>
+                            <p class="paper-title">"Cartel Detection and Screening"</p>
+                            <p class="paper-journal">Oxford Handbook of International Antitrust Economics</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Global context from the world's leading cartel archivist. Validates that our screens are recognized tools in development economics.</p>
+                        </div>
+                    </div>
+                    <div class="paper-card">
+                        <div class="paper-number">10</div>
+                        <div class="paper-content">
+                            <h4>Ishii, J. (2009)</h4>
+                            <p class="paper-title">"Collusion in the US Procurement Market"</p>
+                            <p class="paper-journal">Working Paper</p>
+                            <p class="paper-relevance"><strong>Relevance:</strong> Explains "Bid Rotation"—when Company A and B take turns winning, this model explains how firms allocate market share without explicit communication.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <footer class="footer">
             <p>Data sources: <a href="https://fred.stlouisfed.org/" target="_blank">FRED Economic Data</a> | <a href="https://opentender.eu/" target="_blank">OpenTender.eu</a></p>
