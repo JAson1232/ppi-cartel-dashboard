@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>South Africa Cement Cartel Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #dc2626 0%, #f59e0b 100%);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🏗️</text></svg>') no-repeat center;
+            opacity: 0.2;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .page-header .subtitle {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .period-legend {
+            display: flex;
+            gap: 24px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+        .period-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .period-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .period-color.cartel {
+            background: rgba(220, 38, 38, 0.3);
+            border: 2px solid #dc2626;
+        }
+        .period-color.post-cartel {
+            background: rgba(16, 185, 129, 0.3);
+            border: 2px solid #10b981;
+        }
+        .period-color.dataset1 {
+            background: #3b82f6;
+        }
+        .period-color.dataset2 {
+            background: #f97316;
+        }
+        
+        .controls-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+        .controls-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .control-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .control-group select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        .control-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        .chart-card h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .full-width-chart {
+            grid-column: 1 / -1;
+        }
+        .full-width-chart .chart-container {
+            height: 400px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-box .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-box .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .stat-box.cartel .value {
+            color: #dc2626;
+        }
+        .stat-box.post-cartel .value {
+            color: #10b981;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+        @media (max-width: 1400px) {
+            .comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 800px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .mini-chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+        .mini-chart-card h4 {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .mini-chart-container {
+            height: 150px;
+            position: relative;
+        }
+        
+        .info-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            border: 1px solid var(--border);
+        }
+        .info-section h3 {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+        .info-section ul {
+            color: var(--text-secondary);
+            margin-left: 20px;
+        }
+        .info-section li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-link">← Back to Dashboard</a>
+        
+        <div class="page-header">
+            <h1>🇿🇦 South Africa Cement Cartel Analysis</h1>
+            <p class="subtitle">Producer Price Index comparison during and after the cement cartel period (2000-2015)</p>
+        </div>
+        
+        <div class="period-legend">
+            <div class="period-item">
+                <div class="period-color cartel"></div>
+                <span>Cartel Period (2000-2009)</span>
+            </div>
+            <div class="period-item">
+                <div class="period-color post-cartel"></div>
+                <span>Post-Cartel (2010-2015)</span>
+            </div>
+            <div class="period-item">
+                <div class="period-color dataset1"></div>
+                <span>2000-2012 Dataset</span>
+            </div>
+            <div class="period-item">
+                <div class="period-color dataset2"></div>
+                <span>2006-2025 Dataset</span>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="value" id="stat-comparisons">16</div>
+                <div class="label">Total Comparisons</div>
+            </div>
+            <div class="stat-box cartel">
+                <div class="value">2000-2009</div>
+                <div class="label">Cartel Period</div>
+            </div>
+            <div class="stat-box post-cartel">
+                <div class="value">2010-2015</div>
+                <div class="label">Post-Cartel Period</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="stat-overlap">80</div>
+                <div class="label">Max Overlap Months</div>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="controls-row">
+                <div class="control-group">
+                    <label>Dataset 1 Item (2000-2012)</label>
+                    <select id="select-item1">
+                        <option value="Cement (Retail)">Cement (Retail)</option>
+                        <option value="Cement building blocks">Cement building blocks</option>
+                        <option value="Fibre cement roof sheets">Fibre cement roof sheets</option>
+                        <option value="Ordinary and extended cement">Ordinary and extended cement</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Dataset 2 Item (2006-2025)</label>
+                    <select id="select-item2">
+                        <option value="Cement">Cement</option>
+                        <option value="Prefabricated cement and concrete components">Prefabricated cement and concrete components</option>
+                        <option value="Prefabricated concrete and cement">Prefabricated concrete and cement</option>
+                        <option value="Civil engineering material - total">Civil engineering material - total</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Normalization</label>
+                    <select id="select-normalization">
+                        <option value="start">Normalize at Start (Base=100)</option>
+                        <option value="overlap">Normalize at Overlap (May 2006=100)</option>
+                        <option value="raw">Raw Values</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card full-width-chart">
+                <h3>📈 Selected Comparison: <span id="chart-title">Cement (Retail) vs Cement</span></h3>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="margin: 24px 0 16px;">📊 All 16 Comparison Charts</h3>
+        <div class="comparison-grid" id="comparison-grid">
+            <!-- Mini charts will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="info-section">
+            <h3>📚 About the South Africa Cement Cartel</h3>
+            <p>
+                The South African cement cartel was one of the most significant antitrust cases in the country's history. 
+                Major cement producers colluded on prices from 2000 to 2009, artificially inflating costs for construction 
+                projects across the nation.
+            </p>
+            <p>
+                In 2009, the Competition Commission exposed the cartel, leading to significant fines and structural remedies. 
+                This analysis compares Producer Price Index data for cement-related products during the cartel period 
+                (highlighted in red) versus the post-cartel period (highlighted in green).
+            </p>
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Key Findings:</h4>
+            <ul>
+                <li><strong>Price Stickiness:</strong> During the cartel period, prices showed characteristic "sticky" behavior, 
+                    rising steadily but rarely falling even during economic downturns.</li>
+                <li><strong>Post-Cartel Normalization:</strong> After 2010, price volatility increased as competitive market 
+                    forces returned, with prices more responsive to supply and demand.</li>
+                <li><strong>Data Overlap:</strong> The overlap period (2006-2012) allows direct comparison between the two 
+                    datasets to validate consistency.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="south-africa-cement.js"></script>
+</body>
+</html>
