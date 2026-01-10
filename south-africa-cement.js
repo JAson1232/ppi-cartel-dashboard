@@ -61,9 +61,20 @@ async function init() {
         // Update stats
         document.getElementById('stat-comparisons').textContent = dashboardData.series_data.length;
         
-        // Find max overlap
-        const maxOverlap = Math.max(...dashboardData.series_data.map(s => s.overlap_months));
-        document.getElementById('stat-overlap').textContent = maxOverlap;
+        // Update chain-linking stats
+        const chainLinked = dashboardData.summary_stats?.successful_chain_links || 0;
+        document.getElementById('stat-chain-linked').textContent = chainLinked;
+        
+        const avgFactor = dashboardData.summary_stats?.avg_splicing_factor;
+        if (avgFactor) {
+            document.getElementById('stat-avg-factor').textContent = avgFactor.toFixed(3);
+        }
+        
+        // Find max overlap (now using gap_months from chain-linking)
+        const maxGap = Math.max(...dashboardData.series_data
+            .filter(s => s.chain_link?.gap_months)
+            .map(s => s.chain_link.gap_months));
+        document.getElementById('stat-overlap').textContent = maxGap || 'N/A';
         
         // Initialize main chart
         createMainChart();
@@ -88,8 +99,8 @@ function getSelectedComparison() {
     );
 }
 
-function getSeriesData(comparison, normType) {
-    let series1, series2;
+function getSeriesData(comparison, normType, viewType = 'both') {
+    let series1 = null, series2 = null, chainedSeries = null;
     
     switch (normType) {
         case 'overlap':
@@ -100,12 +111,34 @@ function getSeriesData(comparison, normType) {
             series1 = comparison.raw_series_1;
             series2 = comparison.raw_series_2;
             break;
+        case 'chained':
+            // Chain-linked normalized series
+            if (comparison.chain_link?.success) {
+                chainedSeries = comparison.chain_link.chained_series_normalized;
+            }
+            series1 = comparison.normalized_series_1;
+            series2 = comparison.normalized_series_2;
+            break;
+        case 'chained-raw':
+            // Chain-linked raw series
+            if (comparison.chain_link?.success) {
+                chainedSeries = comparison.chain_link.chained_series_raw;
+            }
+            series1 = comparison.raw_series_1;
+            series2 = comparison.raw_series_2;
+            break;
         default: // 'start'
             series1 = comparison.normalized_series_1;
             series2 = comparison.normalized_series_2;
     }
     
-    return { series1, series2 };
+    // If view is chained-only, hide individual series
+    if (viewType === 'chained-only' && chainedSeries) {
+        series1 = null;
+        series2 = null;
+    }
+    
+    return { series1, series2, chainedSeries, chainLink: comparison.chain_link };
 }
 
 function convertToChartData(seriesObj) {
@@ -120,47 +153,75 @@ function createMainChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
     const comparison = getSelectedComparison();
     const normType = document.getElementById('select-normalization').value;
-    const { series1, series2 } = getSeriesData(comparison, normType);
+    const viewType = document.getElementById('select-view')?.value || 'both';
+    const { series1, series2, chainedSeries, chainLink } = getSeriesData(comparison, normType, viewType);
     
     const data1 = convertToChartData(series1);
     const data2 = convertToChartData(series2);
+    const dataChained = convertToChartData(chainedSeries);
     
-    // Update title
-    document.getElementById('chart-title').textContent = 
-        `${comparison.item_1} vs ${comparison.item_2}`;
+    // Update title with chain-link info
+    let titleText = `${comparison.item_1} vs ${comparison.item_2}`;
+    if (chainLink?.success && (normType === 'chained' || normType === 'chained-raw')) {
+        titleText += ` (Splicing Factor: ${chainLink.splicing_factor.toFixed(3)})`;
+    }
+    document.getElementById('chart-title').textContent = titleText;
     
     if (mainChart) {
         mainChart.destroy();
     }
     
+    const datasets = [];
+    
+    // Add original series (if showing both)
+    if (data1.length > 0 && viewType === 'both') {
+        datasets.push({
+            label: `${comparison.item_1} (2000-2012)`,
+            data: data1,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: chainedSeries ? 1.5 : 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.1,
+            fill: false,
+            borderDash: chainedSeries ? [5, 5] : []
+        });
+    }
+    
+    if (data2.length > 0 && viewType === 'both') {
+        datasets.push({
+            label: `${comparison.item_2} (2006-2025)`,
+            data: data2,
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            borderWidth: chainedSeries ? 1.5 : 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.1,
+            fill: false,
+            borderDash: chainedSeries ? [5, 5] : []
+        });
+    }
+    
+    // Add chain-linked series
+    if (dataChained.length > 0) {
+        datasets.push({
+            label: 'Chain-Linked Series',
+            data: dataChained,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.1,
+            fill: false
+        });
+    }
+    
     mainChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            datasets: [
-                {
-                    label: `${comparison.item_1} (2000-2012)`,
-                    data: data1,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    tension: 0.1,
-                    fill: false
-                },
-                {
-                    label: `${comparison.item_2} (2006-2025)`,
-                    data: data2,
-                    borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    tension: 0.1,
-                    fill: false
-                }
-            ]
-        },
+        data: { datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -195,7 +256,25 @@ function createMainChart() {
                             return `${item.dataset.label}: ${item.parsed.y.toFixed(1)}`;
                         }
                     }
-                }
+                },
+                // Add annotation for link date
+                annotation: chainLink?.success ? {
+                    annotations: {
+                        linkLine: {
+                            type: 'line',
+                            xMin: new Date(chainLink.link_date),
+                            xMax: new Date(chainLink.link_date),
+                            borderColor: '#8b5cf6',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                display: true,
+                                content: 'Link Point',
+                                position: 'start'
+                            }
+                        }
+                    }
+                } : {}
             },
             scales: {
                 x: {
@@ -236,10 +315,12 @@ function createMiniCharts() {
     grid.innerHTML = '';
     
     dashboardData.series_data.forEach((comparison, index) => {
+        const hasChainLink = comparison.chain_link?.success;
         const card = document.createElement('div');
-        card.className = 'mini-chart-card';
+        card.className = 'mini-chart-card' + (hasChainLink ? ' chain-linked' : '');
         card.innerHTML = `
             <h4>${comparison.item_1}<br>vs<br>${comparison.item_2}</h4>
+            ${hasChainLink ? `<span class="chain-badge">🔗 Factor: ${comparison.chain_link.splicing_factor.toFixed(3)}</span>` : '<span class="chain-badge error">❌ No Chain</span>'}
             <div class="mini-chart-container">
                 <canvas id="miniChart${index}"></canvas>
             </div>
@@ -255,7 +336,17 @@ function createMiniChart(comparison, index) {
     const ctx = document.getElementById(`miniChart${index}`);
     if (!ctx) return;
     
-    const { series1, series2 } = getSeriesData(comparison, 'start');
+    // Show chain-linked series if available, otherwise show normalized series
+    const hasChainLink = comparison.chain_link?.success;
+    let chartData;
+    
+    if (hasChainLink) {
+        // Show chain-linked series
+        chartData = convertToChartData(comparison.chain_link.chained_series_normalized);
+    }
+    
+    // Also get individual series for context
+    const { series1, series2 } = getSeriesData(comparison, 'start', 'both');
     const data1 = convertToChartData(series1);
     const data2 = convertToChartData(series2);
     
@@ -263,28 +354,48 @@ function createMiniChart(comparison, index) {
         miniCharts[index].destroy();
     }
     
+    const datasets = [];
+    
+    // Show individual series (faded if chain-linked available)
+    if (data1.length > 0) {
+        datasets.push({
+            data: data1,
+            borderColor: hasChainLink ? 'rgba(59, 130, 246, 0.4)' : '#3b82f6',
+            borderWidth: hasChainLink ? 1 : 1.5,
+            pointRadius: 0,
+            tension: 0.1,
+            fill: false,
+            borderDash: hasChainLink ? [3, 3] : []
+        });
+    }
+    
+    if (data2.length > 0) {
+        datasets.push({
+            data: data2,
+            borderColor: hasChainLink ? 'rgba(249, 115, 22, 0.4)' : '#f97316',
+            borderWidth: hasChainLink ? 1 : 1.5,
+            pointRadius: 0,
+            tension: 0.1,
+            fill: false,
+            borderDash: hasChainLink ? [3, 3] : []
+        });
+    }
+    
+    // Add chain-linked series (prominent)
+    if (hasChainLink && chartData.length > 0) {
+        datasets.push({
+            data: chartData,
+            borderColor: '#8b5cf6',
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.1,
+            fill: false
+        });
+    }
+    
     miniCharts[index] = new Chart(ctx, {
         type: 'line',
-        data: {
-            datasets: [
-                {
-                    data: data1,
-                    borderColor: '#3b82f6',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.1,
-                    fill: false
-                },
-                {
-                    data: data2,
-                    borderColor: '#f97316',
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    tension: 0.1,
-                    fill: false
-                }
-            ]
-        },
+        data: { datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -305,6 +416,10 @@ function createMiniChart(comparison, index) {
                 // Update dropdowns and main chart
                 document.getElementById('select-item1').value = comparison.item_1;
                 document.getElementById('select-item2').value = comparison.item_2;
+                // Switch to chained view if available
+                if (hasChainLink) {
+                    document.getElementById('select-normalization').value = 'chained';
+                }
                 createMainChart();
                 
                 // Scroll to main chart
@@ -321,6 +436,10 @@ function setupEventListeners() {
     document.getElementById('select-item1').addEventListener('change', createMainChart);
     document.getElementById('select-item2').addEventListener('change', createMainChart);
     document.getElementById('select-normalization').addEventListener('change', createMainChart);
+    const viewSelect = document.getElementById('select-view');
+    if (viewSelect) {
+        viewSelect.addEventListener('change', createMainChart);
+    }
 }
 
 // Initialize on page load

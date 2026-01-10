@@ -206,12 +206,34 @@
             border-radius: 12px;
             padding: 16px;
             border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .mini-chart-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        .mini-chart-card.chain-linked {
+            border-color: rgba(139, 92, 246, 0.4);
         }
         .mini-chart-card h4 {
             font-size: 12px;
             margin-bottom: 8px;
             color: var(--text-secondary);
             line-height: 1.4;
+        }
+        .chain-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            margin-bottom: 8px;
+        }
+        .chain-badge.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
         }
         .mini-chart-container {
             height: 150px;
@@ -271,6 +293,10 @@
                 <div class="period-color dataset2"></div>
                 <span>2006-2025 Dataset</span>
             </div>
+            <div class="period-item">
+                <div class="period-color" style="background: #8b5cf6;"></div>
+                <span>Chain-Linked Series</span>
+            </div>
         </div>
         
         <div class="stats-grid">
@@ -289,6 +315,14 @@
             <div class="stat-box">
                 <div class="value" id="stat-overlap">80</div>
                 <div class="label">Max Overlap Months</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="stat-chain-linked">12</div>
+                <div class="label">Chain-Linked Series</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="stat-avg-factor">0.19</div>
+                <div class="label">Avg Splicing Factor</div>
             </div>
         </div>
         
@@ -318,6 +352,15 @@
                         <option value="start">Normalize at Start (Base=100)</option>
                         <option value="overlap">Normalize at Overlap (May 2006=100)</option>
                         <option value="raw">Raw Values</option>
+                        <option value="chained">Chain-Linked (Normalized)</option>
+                        <option value="chained-raw">Chain-Linked (Raw)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Show</label>
+                    <select id="select-view">
+                        <option value="both">Both Series</option>
+                        <option value="chained-only">Chain-Linked Only</option>
                     </select>
                 </div>
             </div>
@@ -332,7 +375,10 @@
             </div>
         </div>
         
-        <h3 style="margin: 24px 0 16px;">📊 All 16 Comparison Charts</h3>
+        <h3 style="margin: 24px 0 16px;">📊 All 16 Comparisons <span style="font-size: 14px; color: var(--text-secondary);">(Click to view details)</span></h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">
+            🔗 Purple = Chain-linked series available | Dashed lines = Original series | Click any chart to expand
+        </p>
         <div class="comparison-grid" id="comparison-grid">
             <!-- Mini charts will be inserted here by JavaScript -->
         </div>
@@ -357,6 +403,16 @@
                     forces returned, with prices more responsive to supply and demand.</li>
                 <li><strong>Data Overlap:</strong> The overlap period (2006-2012) allows direct comparison between the two 
                     datasets to validate consistency.</li>
+            </ul>
+            
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Chain-Linking Methodology:</h4>
+            <p>
+                Since the two datasets have no direct overlap, we use <strong>ML-based chain-linking</strong> to create continuous series:
+            </p>
+            <ul>
+                <li><strong>Gap Filling:</strong> Polynomial regression (degree 2) with Ridge regularization extrapolates values into the 25-month gap between datasets.</li>
+                <li><strong>Splicing Factor:</strong> Calculated as the ratio of means in the estimated 12-month overlap period.</li>
+                <li><strong>Chain-Linking:</strong> The older series is scaled by the splicing factor, then joined with the newer series at the link date (January 2015).</li>
             </ul>
         </div>
     </div>
