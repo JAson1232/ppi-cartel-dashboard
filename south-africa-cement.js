@@ -2,6 +2,8 @@
 
 let dashboardData = null;
 let mainChart = null;
+let dividendChart = null;
+let dividendDetailChart = null;
 const miniCharts = {};
 
 // Cartel period dates
@@ -84,6 +86,9 @@ async function init() {
         
         // Setup event listeners
         setupEventListeners();
+        
+        // Initialize institutional dividend section
+        initInstitutionalDividend();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -440,6 +445,277 @@ function setupEventListeners() {
     if (viewSelect) {
         viewSelect.addEventListener('change', createMainChart);
     }
+    
+    // Institutional dividend pair selector
+    const dividendPairSelect = document.getElementById('select-dividend-pair');
+    if (dividendPairSelect) {
+        dividendPairSelect.addEventListener('change', updateDividendDetailChart);
+    }
+}
+
+// =====================================================
+// INSTITUTIONAL DIVIDEND SECTION
+// =====================================================
+
+function initInstitutionalDividend() {
+    if (!dashboardData.institutional_dividend) {
+        console.log('No institutional dividend data available');
+        return;
+    }
+    
+    const divData = dashboardData.institutional_dividend;
+    
+    // Update summary stats
+    if (divData.summary) {
+        const avgDiv = document.getElementById('stat-avg-dividend');
+        const avgPct = document.getElementById('stat-avg-dividend-pct');
+        const posPairs = document.getElementById('stat-positive-pairs');
+        
+        if (avgDiv) avgDiv.textContent = '+' + divData.summary.avg_dividend_points.toFixed(1);
+        if (avgPct) avgPct.textContent = '+' + divData.summary.avg_dividend_pct.toFixed(1) + '%';
+        if (posPairs) posPairs.textContent = divData.summary.positive_dividend_count + '/' + divData.summary.pairs_analyzed;
+    }
+    
+    // Populate dropdown
+    populateDividendDropdown(divData.pair_results);
+    
+    // Create charts
+    createDividendBarChart(divData.pair_results);
+    createDividendDetailChart(divData.pair_results[0]);
+}
+
+function populateDividendDropdown(pairResults) {
+    const select = document.getElementById('select-dividend-pair');
+    if (!select) return;
+    
+    select.innerHTML = '';
+    
+    // Sort by pct_dividend descending
+    const sorted = [...pairResults].sort((a, b) => b.pct_dividend - a.pct_dividend);
+    
+    sorted.forEach((pair, idx) => {
+        const option = document.createElement('option');
+        option.value = pair.pair_name;
+        const sign = pair.pct_dividend >= 0 ? '+' : '';
+        option.textContent = `${pair.pair_name} (${sign}${pair.pct_dividend.toFixed(1)}%)`;
+        select.appendChild(option);
+    });
+}
+
+function createDividendBarChart(pairResults) {
+    const ctx = document.getElementById('dividendChart');
+    if (!ctx) return;
+    
+    if (dividendChart) {
+        dividendChart.destroy();
+    }
+    
+    // Sort by dividend percentage
+    const sorted = [...pairResults].sort((a, b) => b.pct_dividend - a.pct_dividend);
+    
+    const labels = sorted.map(p => {
+        // Truncate long names
+        const name = p.pair_name;
+        return name.length > 35 ? name.substring(0, 32) + '...' : name;
+    });
+    
+    const values = sorted.map(p => p.pct_dividend);
+    const colors = values.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)');
+    const borderColors = values.map(v => v >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)');
+    
+    dividendChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Institutional Dividend (%)',
+                data: values,
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const pair = sorted[context.dataIndex];
+                            const sign = pair.pct_dividend >= 0 ? '+' : '';
+                            return [
+                                `Dividend: ${sign}${pair.pct_dividend.toFixed(1)}%`,
+                                `Points: ${sign}${pair.avg_institutional_dividend.toFixed(1)}`,
+                                `Model R²: ${(pair.r2_cartel * 100).toFixed(1)}%`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Institutional Dividend (%)',
+                        font: { weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: { size: 11 }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateDividendDetailChart() {
+    const select = document.getElementById('select-dividend-pair');
+    if (!select || !dashboardData.institutional_dividend) return;
+    
+    const selectedName = select.value;
+    const pairData = dashboardData.institutional_dividend.pair_results.find(p => p.pair_name === selectedName);
+    
+    if (pairData) {
+        createDividendDetailChart(pairData);
+    }
+}
+
+function createDividendDetailChart(pairData) {
+    const ctx = document.getElementById('dividendDetailChart');
+    if (!ctx || !pairData) return;
+    
+    if (dividendDetailChart) {
+        dividendDetailChart.destroy();
+    }
+    
+    const ts = pairData.time_series;
+    
+    // Cartel period: actual values (training data)
+    const cartelDates = ts.cartel_dates.map(d => new Date(d));
+    const cartelValues = ts.cartel_values;
+    
+    // Post-cartel: predicted (counterfactual) and actual
+    const postDates = ts.post_dates.map(d => new Date(d));
+    const postPredicted = ts.post_predicted;
+    const postActual = ts.post_actual;
+    
+    // Build datasets
+    // Cartel Period Actual (training data)
+    const cartelData = cartelDates.map((d, i) => ({ x: d.getTime(), y: cartelValues[i] }));
+    
+    // Post-Cartel Predicted (counterfactual - what cartel would have charged)
+    const predictedData = postDates.map((d, i) => ({ x: d.getTime(), y: postPredicted[i] }));
+    
+    // Post-Cartel Actual
+    const actualData = postDates.map((d, i) => ({ x: d.getTime(), y: postActual[i] }));
+    
+    dividendDetailChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Cartel Period (Training)',
+                    data: cartelData,
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0
+                },
+                {
+                    label: 'Counterfactual (Cartel Projection)',
+                    data: predictedData,
+                    borderColor: 'rgba(239, 68, 68, 0.6)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0
+                },
+                {
+                    label: 'Actual Post-Cartel',
+                    data: actualData,
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `${pairData.pair_name} — Dividend: ${pairData.pct_dividend >= 0 ? '+' : ''}${pairData.pct_dividend.toFixed(1)}%`,
+                    font: { size: 14, weight: 'bold' }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'year',
+                        displayFormats: { year: 'yyyy' }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'PPI Index'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            }
+        },
+        plugins: [cartelRegionsPlugin]
+    });
 }
 
 // Initialize on page load

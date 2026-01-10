@@ -415,6 +415,68 @@
                 <li><strong>Chain-Linking:</strong> The older series is scaled by the splicing factor, then joined with the newer series at the link date (January 2015).</li>
             </ul>
         </div>
+        
+        <!-- Institutional Dividend Section -->
+        <div class="info-section" style="margin-top: 24px; border: 2px solid #10b981;">
+            <h3>💰 Institutional Dividend Analysis</h3>
+            <p>
+                The <strong>"Institutional Dividend"</strong> measures the price reduction achieved by breaking the cartel.
+                We train a regression model on cartel period data (2000-2009) to predict what prices would have been if the cartel continued,
+                then compare this counterfactual to actual post-cartel prices.
+            </p>
+            
+            <div class="stats-grid" style="margin: 20px 0;">
+                <div class="stat-box post-cartel">
+                    <div class="value" id="stat-avg-dividend">+19.6</div>
+                    <div class="label">Avg Dividend (pts)</div>
+                </div>
+                <div class="stat-box post-cartel">
+                    <div class="value" id="stat-avg-dividend-pct">+25.6%</div>
+                    <div class="label">Avg Price Reduction</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="stat-positive-pairs">8/12</div>
+                    <div class="label">Pairs with Savings</div>
+                </div>
+            </div>
+            
+            <div class="chart-card" style="margin-top: 16px;">
+                <h3>📊 Institutional Dividend by Pair</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Green = Positive dividend (prices lower than cartel projection) | Red = Negative dividend
+                </p>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="dividendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card" style="margin-top: 16px;">
+                <h3>📈 Selected Pair: Cartel Trend vs Actual</h3>
+                <div class="controls-row" style="margin-bottom: 12px;">
+                    <div class="control-group">
+                        <label>Select Pair</label>
+                        <select id="select-dividend-pair">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="dividendDetailChart"></canvas>
+                </div>
+            </div>
+            
+            <h4 style="margin-top: 20px; margin-bottom: 8px;">Methodology:</h4>
+            <ul>
+                <li><strong>Model Selection:</strong> Linear, Quadratic, and Ridge regression models are tested; best R² is selected.</li>
+                <li><strong>Training Period:</strong> Cartel period (2000-2009) - model learns the cartel price trajectory.</li>
+                <li><strong>Prediction Period:</strong> Post-cartel period (2010-2025) - model extrapolates what prices would have been.</li>
+                <li><strong>Dividend Calculation:</strong> Predicted (counterfactual) - Actual = Institutional Dividend</li>
+            </ul>
+            <p style="margin-top: 12px;">
+                <strong>Interpretation:</strong> A positive dividend means actual prices were <em>lower</em> than the cartel would have charged,
+                indicating the competition intervention <strong>saved consumers money</strong>.
+            </p>
+        </div>
     </div>
     
     <script src="south-africa-cement.js"></script>
