@@ -451,6 +451,12 @@ function setupEventListeners() {
     if (dividendPairSelect) {
         dividendPairSelect.addEventListener('change', updateDividendDetailChart);
     }
+    
+    // Institutional dividend normalization toggle
+    const dividendNormSelect = document.getElementById('select-dividend-normalization');
+    if (dividendNormSelect) {
+        dividendNormSelect.addEventListener('change', updateDividendDetailChart);
+    }
 }
 
 // =====================================================
@@ -588,12 +594,16 @@ function updateDividendDetailChart() {
     const selectedName = select.value;
     const pairData = dashboardData.institutional_dividend.pair_results.find(p => p.pair_name === selectedName);
     
+    // Get normalization preference
+    const normSelect = document.getElementById('select-dividend-normalization');
+    const useNormalized = normSelect && normSelect.value === 'normalized';
+    
     if (pairData) {
-        createDividendDetailChart(pairData);
+        createDividendDetailChart(pairData, useNormalized);
     }
 }
 
-function createDividendDetailChart(pairData) {
+function createDividendDetailChart(pairData, useNormalized = false) {
     const ctx = document.getElementById('dividendDetailChart');
     if (!ctx || !pairData) return;
     
@@ -601,7 +611,10 @@ function createDividendDetailChart(pairData) {
         dividendDetailChart.destroy();
     }
     
-    const ts = pairData.time_series;
+    // Choose raw or normalized time series
+    const ts = useNormalized && pairData.time_series_normalized 
+        ? pairData.time_series_normalized 
+        : pairData.time_series;
     
     // Cartel period: actual values (training data)
     const cartelDates = ts.cartel_dates.map(d => new Date(d));
@@ -621,6 +634,15 @@ function createDividendDetailChart(pairData) {
     
     // Post-Cartel Actual
     const actualData = postDates.map((d, i) => ({ x: d.getTime(), y: postActual[i] }));
+    
+    // Get appropriate dividend percentage
+    const dividendPct = useNormalized && pairData.time_series_normalized
+        ? pairData.time_series_normalized.pct_dividend_normalized
+        : pairData.pct_dividend;
+    
+    // Title and Y-axis label
+    const yAxisLabel = useNormalized ? 'PPI Index (Base = 100)' : 'PPI Index';
+    const titleSuffix = useNormalized ? ' [Normalized]' : '';
     
     dividendDetailChart = new Chart(ctx, {
         type: 'line',
@@ -684,7 +706,7 @@ function createDividendDetailChart(pairData) {
                 },
                 title: {
                     display: true,
-                    text: `${pairData.pair_name} — Dividend: ${pairData.pct_dividend >= 0 ? '+' : ''}${pairData.pct_dividend.toFixed(1)}%`,
+                    text: `${pairData.pair_name} — Dividend: ${dividendPct >= 0 ? '+' : ''}${dividendPct.toFixed(1)}%${titleSuffix}`,
                     font: { size: 14, weight: 'bold' }
                 }
             },
@@ -706,7 +728,7 @@ function createDividendDetailChart(pairData) {
                 y: {
                     title: {
                         display: true,
-                        text: 'PPI Index'
+                        text: yAxisLabel
                     },
                     grid: {
                         color: 'rgba(0, 0, 0, 0.05)'
