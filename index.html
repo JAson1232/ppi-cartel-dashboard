@@ -106,6 +106,37 @@
             --card-accent-end: #f87171;
         }
 
+        .option-card.deprecated {
+            opacity: 0.7;
+        }
+        .option-card.deprecated:hover {
+            opacity: 0.85;
+        }
+        .deprecated-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+        .deprecated-note {
+            background: rgba(107, 114, 128, 0.2);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+
         .option-icon {
             font-size: 48px;
             margin-bottom: 24px;
@@ -367,14 +398,48 @@
         </header>
 
         <div class="options-grid">
-            <!-- Option 1: PPI Analysis -->
-            <a href="ppi-analysis.html" class="option-card ppi">
+            <!-- Option 1: South Africa Cement Cartel (Active) -->
+            <a href="south-africa-cement.html" class="option-card sa-cement">
+                <span class="option-icon">🇿🇦</span>
+                <h2>South Africa Cement Cartel</h2>
+                <p class="description">
+                    Analysis of the South African cement cartel (2000-2009) using Producer Price Index data, 
+                    comparing price behavior during and after the cartel period.
+                </p>
+                <ul class="features">
+                    <li>Cartel period (2000-2009) vs Post-cartel</li>
+                    <li>Multiple cement product comparisons</li>
+                    <li>Normalized time series analysis</li>
+                    <li>ML-based chain-linking methodology</li>
+                </ul>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">16</div>
+                        <div class="stat-label">Comparisons</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">25</div>
+                        <div class="stat-label">Years</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Chain-Linked</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Option 2: PPI Analysis -->
+            <a href="ppi-analysis.html" class="option-card ppi deprecated">
+                <span class="deprecated-badge">⚠️ Deprecated</span>
                 <span class="option-icon">📊</span>
                 <h2>PPI "Sticky Price" Analysis</h2>
                 <p class="description">
                     Analyze Producer Price Index data from FRED to detect cartel behavior through "sticky prices" - 
                     prices that remain stable during economic downturns when they should fall.
                 </p>
+                <div class="deprecated-note">
+                    📋 This analysis is archived for reference but will not be included in the final research paper.
+                </div>
                 <ul class="features">
                     <li>14 industries tracked (1925-2023)</li>
                     <li>7 historical eras analyzed</li>
@@ -398,13 +463,17 @@
             </a>
 
             <!-- Option 2: Greek Advanced Analysis -->
-            <a href="greek-advanced.html" class="option-card greek-advanced">
+            <a href="greek-advanced.html" class="option-card greek-advanced deprecated">
+                <span class="deprecated-badge">⚠️ Deprecated</span>
                 <span class="option-icon">🔗</span>
                 <h2>Greek Procurement: Advanced</h2>
                 <p class="description">
                     Deep cartel detection analysis on Greek public procurement data including bid rotation patterns, 
                     network analysis, and geographic monopoly detection.
                 </p>
+                <div class="deprecated-note">
+                    📋 This analysis is archived for reference but will not be included in the final research paper.
+                </div>
                 <ul class="features">
                     <li>Bid rotation detection (CPV 55)</li>
                     <li>Cartel network graph (CPV 77)</li>
@@ -428,13 +497,17 @@
             </a>
 
             <!-- Option 3: Greek EDA -->
-            <a href="greek-eda.html" class="option-card greek-eda">
+            <a href="greek-eda.html" class="option-card greek-eda deprecated">
+                <span class="deprecated-badge">⚠️ Deprecated</span>
                 <span class="option-icon">📈</span>
                 <h2>Greek Procurement: Risk Screens</h2>
                 <p class="description">
                     Exploratory analysis of Greek procurement with three key risk indicators: 
                     Single Bidder Index, HHI concentration, and Benford's Law deviation.
                 </p>
+                <div class="deprecated-note">
+                    📋 This analysis is archived for reference but will not be included in the final research paper.
+                </div>
                 <ul class="features">
                     <li>Single-bid rate by sector</li>
                     <li>HHI market concentration</li>
@@ -458,13 +531,17 @@
             </a>
 
             <!-- Option 4: Cartel Differentiation -->
-            <a href="cartel-differentiation.html" class="option-card cartel-diff">
+            <a href="cartel-differentiation.html" class="option-card cartel-diff deprecated">
+                <span class="deprecated-badge">⚠️ Deprecated</span>
                 <span class="option-icon">⚖️</span>
                 <h2>Cartel Differentiation Tests</h2>
                 <p class="description">
                     Advanced tests to distinguish natural monopolies from active cartels using 
                     input cost pass-through analysis and price variance patterns.
                 </p>
+                <div class="deprecated-note">
+                    📋 This analysis is archived for reference but will not be included in the final research paper.
+                </div>
                 <ul class="features">
                     <li>Rocket & Feather asymmetry test</li>
                     <li>Step-Ladder variance screen</li>
@@ -483,36 +560,6 @@
                     <div class="stat">
                         <div class="stat-value">5</div>
                         <div class="stat-label">Input Series</div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Option 5: South Africa Cement Cartel -->
-            <a href="south-africa-cement.html" class="option-card sa-cement">
-                <span class="option-icon">🇿🇦</span>
-                <h2>South Africa Cement Cartel</h2>
-                <p class="description">
-                    Analysis of the South African cement cartel (2000-2009) using Producer Price Index data, 
-                    comparing price behavior during and after the cartel period.
-                </p>
-                <ul class="features">
-                    <li>Cartel period (2000-2009) vs Post-cartel</li>
-                    <li>Multiple cement product comparisons</li>
-                    <li>Normalized time series analysis</li>
-                    <li>Data overlap validation</li>
-                </ul>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value">16</div>
-                        <div class="stat-label">Comparisons</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">25</div>
-                        <div class="stat-label">Years</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">80</div>
-                        <div class="stat-label">Overlap Months</div>
                     </div>
                 </div>
             </a>
