@@ -90,6 +90,9 @@ async function init() {
         // Initialize institutional dividend section
         initInstitutionalDividend();
         
+        // Initialize cartel premium section
+        initCartelPremium();
+        
     } catch (error) {
         console.error('Error loading data:', error);
     }
@@ -707,6 +710,437 @@ function createDividendDetailChart(pairData, useNormalized = false) {
                 title: {
                     display: true,
                     text: `${pairData.pair_name} — Dividend: ${dividendPct >= 0 ? '+' : ''}${dividendPct.toFixed(1)}%${titleSuffix}`,
+                    font: { size: 14, weight: 'bold' }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'year',
+                        displayFormats: { year: 'yyyy' }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: yAxisLabel
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                }
+            }
+        },
+        plugins: [cartelRegionsPlugin]
+    });
+}
+
+// =============================================
+// CARTEL PREMIUM ANALYSIS (REVERSE METHODOLOGY)
+// =============================================
+
+let premiumChart = null;
+let premiumDetailChart = null;
+let overchargeChart = null;
+
+function initCartelPremium() {
+    if (!dashboardData.cartel_premium) {
+        console.log('No cartel premium data available');
+        return;
+    }
+    
+    const premData = dashboardData.cartel_premium;
+    
+    // Update summary stats with new CAGR-based metrics
+    if (premData.summary) {
+        const cartelCagr = document.getElementById('stat-cartel-cagr');
+        const postCagr = document.getElementById('stat-post-cagr');
+        const avgPct = document.getElementById('stat-avg-premium-pct');
+        const posPairs = document.getElementById('stat-positive-premium');
+        
+        if (cartelCagr) cartelCagr.textContent = premData.summary.avg_cartel_cagr.toFixed(1) + '%';
+        if (postCagr) postCagr.textContent = premData.summary.avg_post_cagr.toFixed(1) + '%';
+        if (avgPct) avgPct.textContent = '+' + premData.summary.cumulative_overcharge_pct.toFixed(0) + '%';
+        if (posPairs) posPairs.textContent = premData.summary.pairs_with_faster_cartel_growth + '/' + premData.summary.pairs_analyzed;
+    }
+    
+    // Update inflation-adjusted stats
+    if (premData.inflation_adjusted) {
+        const realCartelCagr = document.getElementById('stat-real-cartel-cagr');
+        const realPostCagr = document.getElementById('stat-real-post-cagr');
+        const realOvercharge = document.getElementById('stat-real-overcharge');
+        const avgInflation = document.getElementById('stat-avg-inflation');
+        
+        if (realCartelCagr) realCartelCagr.textContent = premData.inflation_adjusted.real_cartel_cagr.toFixed(1) + '%';
+        if (realPostCagr) realPostCagr.textContent = premData.inflation_adjusted.real_post_cagr.toFixed(1) + '%';
+        if (realOvercharge) realOvercharge.textContent = '+' + premData.inflation_adjusted.real_overcharge_pct.toFixed(0) + '%';
+        if (avgInflation) avgInflation.textContent = premData.inflation_adjusted.avg_inflation_cartel.toFixed(1) + '% / ' + premData.inflation_adjusted.avg_inflation_post.toFixed(1) + '%';
+    }
+    
+    // Create cumulative overcharge chart
+    createOverchargeChart(premData.cumulative_overcharge, 'nominal');
+    
+    // Populate dropdown
+    populatePremiumDropdown(premData.pair_results);
+    
+    // Create charts
+    createPremiumBarChart(premData.pair_results);
+    createPremiumDetailChart(premData.pair_results[0]);
+    
+    // Setup event listeners for premium section
+    setupPremiumEventListeners();
+    
+    // Setup overcharge view toggle
+    const overchargeViewSelect = document.getElementById('select-overcharge-view');
+    if (overchargeViewSelect) {
+        overchargeViewSelect.addEventListener('change', function() {
+            createOverchargeChart(premData.cumulative_overcharge, this.value);
+        });
+    }
+}
+
+function createOverchargeChart(overchargeData, viewType = 'nominal') {
+    const ctx = document.getElementById('overchargeChart');
+    if (!ctx || !overchargeData) return;
+    
+    if (overchargeChart) {
+        overchargeChart.destroy();
+    }
+    
+    const years = overchargeData.years;
+    const isReal = viewType === 'real';
+    
+    const cartelPath = isReal ? overchargeData.real_cartel_path : overchargeData.cartel_path;
+    const competitivePath = isReal ? overchargeData.real_competitive_path : overchargeData.competitive_path;
+    
+    const premData = dashboardData.cartel_premium;
+    const cartelRate = isReal ? premData.inflation_adjusted.real_cartel_cagr : premData.summary.avg_cartel_cagr;
+    const compRate = isReal ? premData.inflation_adjusted.real_post_cagr : premData.summary.avg_post_cagr;
+    const overchargePct = isReal ? premData.inflation_adjusted.real_overcharge_pct : premData.summary.cumulative_overcharge_pct;
+    const titlePrefix = isReal ? 'Real ' : '';
+    const yAxisLabel = isReal ? 'Real PPI Index (2000=100)' : 'PPI Index (2000=100)';
+    
+    overchargeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [
+                {
+                    label: `${titlePrefix}Cartel Path (${cartelRate.toFixed(1)}%/yr)`,
+                    data: cartelPath,
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: `${titlePrefix}Competitive Path (${compRate.toFixed(1)}%/yr)`,
+                    data: competitivePath,
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    borderDash: [8, 4],
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Overcharge Area',
+                    data: cartelPath,
+                    borderColor: 'transparent',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    fill: {
+                        target: 1,
+                        above: 'rgba(239, 68, 68, 0.2)'
+                    },
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        filter: function(legendItem) {
+                            return legendItem.text !== 'Overcharge Area';
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            if (context.datasetIndex < 2) {
+                                const idx = context.dataIndex;
+                                const diff = cartelPath[idx] - competitivePath[idx];
+                                const pct = ((cartelPath[idx] / competitivePath[idx]) - 1) * 100;
+                                return `Overcharge: +${pct.toFixed(1)}%`;
+                            }
+                            return '';
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: isReal ? 'Real (Inflation-Adjusted) Overcharge' : 'Nominal Overcharge',
+                    font: { size: 14, weight: 'bold' }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Year' },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                y: {
+                    title: { display: true, text: yAxisLabel },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    min: 100
+                }
+            }
+        }
+    });
+}
+
+function setupPremiumEventListeners() {
+    const pairSelect = document.getElementById('select-premium-pair');
+    const normSelect = document.getElementById('select-premium-normalization');
+    
+    if (pairSelect) {
+        pairSelect.addEventListener('change', function() {
+            const pairName = this.value;
+            const pairData = dashboardData.cartel_premium.pair_results.find(p => p.pair_name === pairName);
+            if (pairData) {
+                createPremiumDetailChart(pairData);
+            }
+        });
+    }
+    
+    if (normSelect) {
+        normSelect.addEventListener('change', function() {
+            const pairSelect = document.getElementById('select-premium-pair');
+            const pairName = pairSelect.value;
+            const pairData = dashboardData.cartel_premium.pair_results.find(p => p.pair_name === pairName);
+            if (pairData) {
+                createPremiumDetailChart(pairData);
+            }
+        });
+    }
+}
+
+function populatePremiumDropdown(pairResults) {
+    const select = document.getElementById('select-premium-pair');
+    if (!select) return;
+    
+    select.innerHTML = '';
+    
+    // Sort by CAGR difference descending
+    const sorted = [...pairResults].sort((a, b) => b.cagr_difference - a.cagr_difference);
+    
+    sorted.forEach((pair, idx) => {
+        const option = document.createElement('option');
+        option.value = pair.pair_name;
+        const sign = pair.cagr_difference >= 0 ? '+' : '';
+        option.textContent = `${pair.pair_name} (${sign}${pair.cagr_difference.toFixed(1)}%/yr)`;
+        select.appendChild(option);
+    });
+}
+
+function createPremiumBarChart(pairResults) {
+    const ctx = document.getElementById('premiumChart');
+    if (!ctx) return;
+    
+    if (premiumChart) {
+        premiumChart.destroy();
+    }
+    
+    // Sort by CAGR difference
+    const sorted = [...pairResults].sort((a, b) => b.cagr_difference - a.cagr_difference);
+    
+    const labels = sorted.map(p => {
+        // Truncate long names
+        const name = p.pair_name;
+        return name.length > 35 ? name.substring(0, 32) + '...' : name;
+    });
+    
+    const values = sorted.map(p => p.cagr_difference);
+    // For CAGR diff: positive = cartel grew faster (red/bad), negative = post-cartel grew faster (shouldn't happen)
+    const colors = values.map(v => v >= 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)');
+    const borderColors = values.map(v => v >= 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(16, 185, 129, 1)');
+    
+    premiumChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'CAGR Difference (%/yr)',
+                data: values,
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.raw;
+                            const pair = sorted[context.dataIndex];
+                            return [
+                                `CAGR Diff: ${val >= 0 ? '+' : ''}${val.toFixed(2)}%/yr`,
+                                `Cartel CAGR: ${pair.cartel_cagr.toFixed(1)}%/yr`,
+                                `Post-Cartel CAGR: ${pair.post_cagr.toFixed(1)}%/yr`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'CAGR Difference (Cartel - Competitive) %/yr'
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: { size: 10 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createPremiumDetailChart(pairData) {
+    const ctx = document.getElementById('premiumDetailChart');
+    if (!ctx) return;
+    
+    if (premiumDetailChart) {
+        premiumDetailChart.destroy();
+    }
+    
+    // Get normalization preference
+    const normSelect = document.getElementById('select-premium-normalization');
+    const useNormalized = normSelect && normSelect.value === 'normalized';
+    
+    const timeSeries = useNormalized ? pairData.time_series_normalized : pairData.time_series;
+    const yAxisLabel = useNormalized ? 'Index (Base=100)' : 'Index Value';
+    const titleSuffix = useNormalized ? ' (Normalized)' : '';
+    
+    // Build full time series combining cartel period and post-cartel period
+    // Cartel period: actual cartel prices + predicted competitive prices
+    const cartelDates = timeSeries.cartel_dates.map(d => new Date(d));
+    const cartelActual = timeSeries.cartel_actual;
+    const cartelPredicted = timeSeries.cartel_predicted_competitive;
+    
+    // Post-cartel period: actual prices (used for training) + predicted (regression line)
+    const postDates = timeSeries.post_dates.map(d => new Date(d));
+    const postActual = timeSeries.post_actual;
+    const postPredicted = timeSeries.post_predicted;
+    
+    // Combine all dates for a continuous x-axis
+    const allDates = [...cartelDates, ...postDates];
+    
+    // Create datasets with null gaps for separation
+    // Actual prices: cartel actual (solid red) then post-cartel actual (solid blue)
+    const actualCartelData = cartelActual.map((v, i) => ({ x: cartelDates[i], y: v }));
+    const actualPostData = postActual.map((v, i) => ({ x: postDates[i], y: v }));
+    
+    // Predicted/Trend: cartel predicted (dashed green) then post-cartel regression (dashed green)
+    const predictedCartelData = cartelPredicted.map((v, i) => ({ x: cartelDates[i], y: v }));
+    const predictedPostData = postPredicted.map((v, i) => ({ x: postDates[i], y: v }));
+    
+    // Use CAGR difference for title
+    const cagrDiff = pairData.cagr_difference || pairData.pct_premium;
+    const cartelCagr = pairData.cartel_cagr || 0;
+    const postCagr = pairData.post_cagr || 0;
+    
+    premiumDetailChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: `Actual Cartel Price (${cartelCagr.toFixed(1)}%/yr)`,
+                    data: actualCartelData,
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2.5,
+                    pointRadius: 0
+                },
+                {
+                    label: `Actual Post-Cartel Price (${postCagr.toFixed(1)}%/yr)`,
+                    data: actualPostData,
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2.5,
+                    pointRadius: 0
+                },
+                {
+                    label: 'Competitive Trend (Post-Cartel Rate)',
+                    data: [...predictedCartelData, ...predictedPostData],
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `${pairData.pair_name} — CAGR Diff: ${cagrDiff >= 0 ? '+' : ''}${cagrDiff.toFixed(1)}%/yr${titleSuffix}`,
                     font: { size: 14, weight: 'bold' }
                 }
             },

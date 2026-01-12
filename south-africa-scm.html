@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>South Africa Cement - Synthetic Control Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔬</text></svg>') no-repeat center;
+            opacity: 0.2;
+        }
+        .page-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .page-header .subtitle {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .nav-tab {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .nav-tab:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+        .nav-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+        .stat-box.positive .value { color: #10b981; }
+        .stat-box.negative .value { color: #ef4444; }
+        .stat-box.neutral .value { color: #f59e0b; }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        .chart-card h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .chart-container.small {
+            height: 250px;
+        }
+        
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .weights-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .weights-table th, .weights-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .weights-table th {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .weights-table .weight-bar {
+            height: 8px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        .weights-table .weight-bar.negative {
+            background: #ef4444;
+        }
+        
+        .info-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            border: 1px solid var(--border);
+        }
+        .info-section h3 {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+        .info-section ul {
+            color: var(--text-secondary);
+            margin-left: 20px;
+        }
+        .info-section li {
+            margin-bottom: 8px;
+        }
+        
+        .annual-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .annual-table th, .annual-table td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .annual-table th {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            background: var(--bg-dark);
+        }
+        .annual-table th:first-child, .annual-table td:first-child {
+            text-align: left;
+        }
+        .annual-table .positive { color: #10b981; }
+        .annual-table .negative { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-link">← Back to Dashboard</a>
+        
+        <div class="page-header">
+            <h1>🔬 Synthetic Control Method Analysis</h1>
+            <p class="subtitle">Estimating the causal effect of cartel dissolution on cement prices using SCM</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <a href="south-africa-cement.html" class="nav-tab">📊 CAGR Analysis</a>
+            <a href="south-africa-scm.html" class="nav-tab active">🔬 SCM Analysis</a>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="value" id="stat-observations">311</div>
+                <div class="label">Monthly Observations</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="stat-donors">3</div>
+                <div class="label">Donor Units</div>
+            </div>
+            <div class="stat-box positive">
+                <div class="value" id="stat-gap">21.4%</div>
+                <div class="label">Avg Post-Cartel Gap</div>
+            </div>
+            <div class="stat-box positive">
+                <div class="value" id="stat-gap-points">120.5</div>
+                <div class="label">Index Points Saved</div>
+            </div>
+            <div class="stat-box neutral">
+                <div class="value" id="stat-fit">-0.1%</div>
+                <div class="label">Model Fit (Training)</div>
+            </div>
+            <div class="stat-box">
+                <div class="value">2009</div>
+                <div class="label">Intervention Year</div>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <h3>📈 Actual vs Synthetic Control</h3>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>📉 Gap Over Time (Synthetic - Actual)</h3>
+                <div class="chart-container small">
+                    <canvas id="gapChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>⚖️ Model Weights (Donor Contributions)</h3>
+                <table class="weights-table" id="weightsTable">
+                    <thead>
+                        <tr>
+                            <th>Donor</th>
+                            <th>Weight</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <h3>📅 Annual Summary</h3>
+            <div style="overflow-x: auto;">
+                <table class="annual-table" id="annualTable">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Actual Price</th>
+                            <th>Synthetic Price</th>
+                            <th>Gap (Points)</th>
+                            <th>Gap (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h3>📚 About Synthetic Control Method</h3>
+            <p>
+                The Synthetic Control Method (SCM) creates a "synthetic" version of the treated unit (cement prices) 
+                by weighting control units (other construction materials) to match pre-intervention trends.
+            </p>
+            <p>
+                <strong>How it works:</strong> We train a model during the cartel period (2000-2009) to predict cement 
+                prices based on other construction input costs (Plumbing, Drainage, Ironmongery). After the cartel 
+                dissolves, we compare actual prices to what the model predicts.
+            </p>
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Key Findings:</h4>
+            <ul>
+                <li><strong>Perfect Model Fit:</strong> During the cartel period, the synthetic control matches actual prices almost exactly (Gap: -0.1%)</li>
+                <li><strong>Post-Cartel Divergence:</strong> After 2009, actual prices fall significantly below the synthetic counterfactual</li>
+                <li><strong>Consumer Dividend:</strong> Prices are 21-32% lower than they would have been under continued cartel pricing</li>
+                <li><strong>Institutional Effect:</strong> This confirms the positive impact of antitrust enforcement on consumer welfare</li>
+            </ul>
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Interpretation:</h4>
+            <p>
+                The <strong>green shaded area</strong> in the main chart represents consumer savings - the difference between 
+                what prices would have been (synthetic) and what they actually are (actual). This "institutional dividend" 
+                grows over time as competition continues to exert downward pressure on prices.
+            </p>
+        </div>
+    </div>
+    
+    <script src="south-africa-scm.js"></script>
+</body>
+</html>

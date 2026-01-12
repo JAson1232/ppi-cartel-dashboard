@@ -276,6 +276,11 @@
             <p class="subtitle">Producer Price Index comparison during and after the cement cartel period (2000-2015)</p>
         </div>
         
+        <div class="nav-tabs" style="display: flex; gap: 8px; margin-bottom: 24px;">
+            <a href="south-africa-cement.html" class="nav-tab" style="padding: 12px 24px; background: var(--primary); border: 1px solid var(--primary); border-radius: 8px; color: white; text-decoration: none;">📊 CAGR Analysis</a>
+            <a href="south-africa-scm.html" class="nav-tab" style="padding: 12px 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s;">🔬 SCM Analysis</a>
+        </div>
+        
         <div class="period-legend">
             <div class="period-item">
                 <div class="period-color cartel"></div>
@@ -482,6 +487,128 @@
             <p style="margin-top: 12px;">
                 <strong>Interpretation:</strong> A positive dividend means actual prices were <em>lower</em> than the cartel would have charged,
                 indicating the competition intervention <strong>saved consumers money</strong>.
+            </p>
+        </div>
+        
+        <!-- Cartel Premium Section (Growth Rate Methodology) -->
+        <div class="info-section" style="margin-top: 24px; border: 2px solid #ef4444;">
+            <h3>🔴 Cartel Premium Analysis (Growth Rate Comparison)</h3>
+            <p>
+                The <strong>"Cartel Premium"</strong> measures how much the cartel overcharged consumers compared to competitive prices.
+                We compare the <em>Compound Annual Growth Rate (CAGR)</em> during the cartel period (2000-2009) vs the post-cartel 
+                competitive period (2010-2024). Higher growth rates during the cartel period indicate price inflation above competitive levels.
+            </p>
+            
+            <!-- Nominal Analysis -->
+            <h4 style="margin-top: 20px; margin-bottom: 10px;">📊 Nominal Analysis</h4>
+            <div class="stats-grid" style="margin: 10px 0;">
+                <div class="stat-box cartel">
+                    <div class="value" id="stat-cartel-cagr">10.4%</div>
+                    <div class="label">Cartel CAGR</div>
+                </div>
+                <div class="stat-box" style="background: #ecfdf5; border-color: #10b981;">
+                    <div class="value" id="stat-post-cagr" style="color: #10b981;">5.8%</div>
+                    <div class="label">Post-Cartel CAGR</div>
+                </div>
+                <div class="stat-box cartel">
+                    <div class="value" id="stat-avg-premium-pct">+54%</div>
+                    <div class="label">Cumulative Overcharge</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="stat-positive-premium">12/12</div>
+                    <div class="label">Pairs Affected</div>
+                </div>
+            </div>
+            
+            <!-- Inflation-Adjusted Analysis -->
+            <h4 style="margin-top: 20px; margin-bottom: 10px;">📉 Inflation-Adjusted (Real) Analysis</h4>
+            <div class="stats-grid" style="margin: 10px 0;">
+                <div class="stat-box cartel">
+                    <div class="value" id="stat-real-cartel-cagr">5.0%</div>
+                    <div class="label">Real Cartel CAGR</div>
+                </div>
+                <div class="stat-box" style="background: #ecfdf5; border-color: #10b981;">
+                    <div class="value" id="stat-real-post-cagr" style="color: #10b981;">0.6%</div>
+                    <div class="label">Real Post-Cartel CAGR</div>
+                </div>
+                <div class="stat-box cartel">
+                    <div class="value" id="stat-real-overcharge">+53%</div>
+                    <div class="label">Real Overcharge</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="stat-avg-inflation">5.4% / 5.1%</div>
+                    <div class="label">Avg Inflation (Cartel/Post)</div>
+                </div>
+            </div>
+            
+            <!-- Cumulative Overcharge Chart -->
+            <div class="chart-card" style="margin-top: 16px;">
+                <h3>📈 Cumulative Cartel Overcharge (2000-2009)</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Red = Actual cartel prices | Green dashed = Hypothetical competitive prices | Shaded area = Overcharge
+                </p>
+                <div class="controls-row" style="margin-bottom: 12px;">
+                    <div class="control-group">
+                        <label>View</label>
+                        <select id="select-overcharge-view">
+                            <option value="nominal">Nominal</option>
+                            <option value="real">Real (Inflation-Adjusted)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="overchargeChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card" style="margin-top: 16px;">
+                <h3>📊 CAGR Difference by Pair</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Red = Higher cartel growth (overcharging) | All 12 pairs show faster price growth during cartel period
+                </p>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="premiumChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card" style="margin-top: 16px;">
+                <h3>📈 Full Time Series: Cartel vs Competitive Trend</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Red = Actual cartel prices | Green dashed = Hypothetical competitive growth | Blue = Post-cartel prices
+                </p>
+                <div class="controls-row" style="margin-bottom: 12px;">
+                    <div class="control-group">
+                        <label>Select Pair</label>
+                        <select id="select-premium-pair">
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Data View</label>
+                        <select id="select-premium-normalization">
+                            <option value="normalized">Normalized (Base=100)</option>
+                            <option value="raw">Raw Index Values</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="premiumDetailChart"></canvas>
+                </div>
+            </div>
+            
+            <h4 style="margin-top: 20px; margin-bottom: 8px;">Methodology:</h4>
+            <ul>
+                <li><strong>Model:</strong> Compound Annual Growth Rate (CAGR) Comparison</li>
+                <li><strong>Data Correction:</strong> Datasets properly rebased (2000=100 base unified)</li>
+                <li><strong>Cartel Period:</strong> 2000-2009 — Nominal CAGR: <strong>10.4%/year</strong> | Real: <strong>5.0%/year</strong></li>
+                <li><strong>Post-Cartel Period:</strong> 2010-2024 — Nominal CAGR: <strong>5.8%/year</strong> | Real: <strong>0.6%/year</strong></li>
+                <li><strong>Inflation:</strong> Average 5.4%/year during cartel vs 5.1%/year post-cartel (South Africa CPI)</li>
+                <li><strong>Overcharge Calculation:</strong> Project both rates from 2000 baseline; difference at 2009 = cumulative overcharge</li>
+            </ul>
+            <p style="margin-top: 12px;">
+                <strong>Interpretation:</strong> The cartel grew prices ~80% faster than the competitive market (10.4% vs 5.8%/year nominal).
+                By 2009, this resulted in prices approximately <strong>54% higher</strong> than competitive levels (53% after adjusting for inflation),
+                indicating consumers were <strong>overcharged</strong> by the cartel. This aligns with typical cartel overcharge estimates in the literature (10-50%).
             </p>
         </div>
     </div>
