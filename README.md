@@ -16,7 +16,7 @@ This dashboard uses the **"Sticky Price" Test** to identify industries where pri
 
 ## 🚀 Live Demo
 
-**[View Dashboard](https://YOUR_USERNAME.github.io/ppi-cartel-dashboard/)**
+**[View Dashboard](https://jason1232.github.io/ppi-cartel-dashboard/)**
 
 ## 📁 Files
 
