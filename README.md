@@ -21,6 +21,8 @@ Uses the "Sticky Price Test" to identify industries where prices remain rigid du
 - Automatic flagging of suspicious months
 - Industry risk rankings
 
+> ⚠️ *These modules are archived for reference and not included in the final research.*
+
 ### 2. 🇿🇦 South Africa Cement Cartel Analysis
 **[south-africa-cement.html](south-africa-cement.html)** | **[south-africa-scm.html](south-africa-scm.html)**
 
